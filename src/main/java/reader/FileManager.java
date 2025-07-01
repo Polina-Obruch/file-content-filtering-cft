@@ -1,75 +1,87 @@
 package reader;
 
+import properties.Options;
 import properties.TypeString;
+import statictic.Statistic;
+import statictic.StatisticImpl;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class FileManager {
-    private static Parser parser = new Parser();
-    //private static FileWriter strings;
-    private static BufferedWriter strings;
-    //private static FileWriter integers;
-    private static BufferedWriter integers;
-    //private static FileWriter floats;
-    private static BufferedWriter floats;
+    private static final Parser parser = new Parser();
+    private final Options options;
+    private static final Map<TypeString, BufferedWriter> writers = new HashMap<>();
+    private static final Statistic stats = new StatisticImpl();
 
+    public FileManager(Options options) {
+        this.options = options;
+    }
 
-    public static void readFile(String[] pathsFile) throws IOException {
-        for (String path : pathsFile) {
-            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
+    public void workWithFiles() {
+        for (String file : options.getFiles()) {
+            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
                 while (bufferedReader.ready()) {
                     String str = bufferedReader.readLine();
                     TypeString type = parser.defineType(str);
-
-                    switch (type) {
-                        case STRING -> {
-                            if (strings == null) {
-                                strings = new BufferedWriter(new FileWriter(type.getFileName()));
-                            }
-                            parser.parseString(str);
-                            strings.write(str);
-                            strings.newLine();
-
-                        }
-                        case INTEGER -> {
-                            if (integers == null) {
-                                integers = new BufferedWriter(new FileWriter(type.getFileName()));
-                            }
-                            parser.parseInt(str);
-                            integers.write(str);
-                            integers.newLine();
-                        }
-                        case FLOAT -> {
-                            if (floats == null) {
-                                floats = new BufferedWriter(new FileWriter(type.getFileName()));
-                            }
-                            parser.parseFloat(str);
-                            floats.write(str);
-                            floats.newLine();
-
-                        }
+                    BufferedWriter writer = getWriter(type);
+                    if (options.isStats()) {
+                        stats.addValue(type, str);
                     }
+                    writer.write(str);
+                    writer.newLine();
                 }
-            } catch (FileNotFoundException exp) {
-                System.out.printf("Путь для файла %s указан неверно%n", path);
+            } catch (IOException exp) {
+                System.out.printf("The %s file path is incorrect%n", file);
             }
         }
-        strings.close();
-        integers.close();
-        floats.close();
+
+        closeAll();
+
+        if (options.isStats()) {
+            switch (options.getTypeStat()) {
+                case FULL -> stats.getFullStats();
+                case SHORT -> stats.getShortStats();
+            }
+        }
     }
 
-    public static void writeStringsFile(String str, FileWriter strings) throws IOException {
-        strings.write(str);
+    private  BufferedWriter getWriter(TypeString type) throws IOException {
+        if (!writers.containsKey(type)) {
+            StringBuilder builder = new StringBuilder();
+            if (options.getName() != null) {
+                builder.append(options.getName());
+            }
+            builder.append(type.getFileName());
+
+            Path basePath = Path.of(builder.toString());
+
+            if (options.getPath() != null) {
+                basePath = options.getPath().resolve(basePath);
+            }
+             try {
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(basePath.toFile(), options.isAppend()));
+                 writers.put(type, writer);
+             } catch (IOException exp) {
+                 System.out.printf("The directory for the recording file was not found." +
+                         "The %s file will be placed in the current directory.%n", type);
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(builder.toString(), options.isAppend()));
+                 writers.put(type, writer);
+             }
+        }
+        return writers.get(type);
     }
 
-    public static void writeIntegersFile(String str, FileWriter integers) throws IOException {
-        integers.write(str);
+    private void closeAll() {
+        writers.values().forEach(writer -> {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                System.err.println("Error closing file: " + e.getMessage());
+            }
+        });
     }
-
-    public static void writeFloatsFile(String str, FileWriter floats) {
-
-    }
-
 }
