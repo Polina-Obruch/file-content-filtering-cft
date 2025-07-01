@@ -21,6 +21,7 @@ public class FileManager {
         this.options = options;
     }
 
+    //Отлов сделать java.lang.NullPointerException
     public void workWithFiles() {
         for (String file : options.getFiles()) {
             try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
@@ -35,7 +36,7 @@ public class FileManager {
                     writer.newLine();
                 }
             } catch (IOException exp) {
-                System.out.printf("The %s file path is incorrect%n", file);
+                System.out.printf("The reading file path %s is incorrect%n", file);
             }
         }
 

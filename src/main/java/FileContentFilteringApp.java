@@ -4,6 +4,7 @@ import reader.FileManager;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 /**
  -o <путь> - путь для сохранения результатов (по умолчанию - текущая директория)
@@ -18,6 +19,7 @@ public class FileContentFilteringApp {
     public static void main(String[] args) {
         Options options = new Options();
         int size = args.length;
+        Pattern pathFile= Pattern.compile("^.+[\\\\/]?[^\\\\/]+\\.txt$", Pattern.CASE_INSENSITIVE);
 
         if (size == 0) {
             System.out.println("For the utility to work at startup, you must specify the desired options and source files for filtering.");
@@ -34,10 +36,15 @@ public class FileContentFilteringApp {
                 case "-f" -> options.setTypeStat(TypeStatistic.FULL);
                 case "-a" -> options.setAppend(true);
                 default -> {
-                    options.setFiles(Arrays.copyOfRange(args, i, size));
-                    i = size;
+                    if (pathFile.matcher(crt).matches()) {
+                        options.setFiles(Arrays.copyOfRange(args, i, size));
+                        i = size;
+                    } else {
+                        System.out.printf("Incorrect option %s%n",crt);
+                    }
                 }
             }
+
         }
 
         FileManager fileManager = new FileManager(options);
