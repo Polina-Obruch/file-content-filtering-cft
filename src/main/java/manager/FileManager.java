@@ -1,9 +1,9 @@
-package reader;
+package manager;
 
 import properties.Options;
-import properties.TypeString;
-import statictic.Statistic;
-import statictic.StatisticImpl;
+import properties.DataType;
+import statistic.Statistic;
+import statistic.StatisticImpl;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -12,22 +12,28 @@ import java.util.Map;
 
 
 public class FileManager {
-    private static final Parser parser = new Parser();
+    private static final DataFilter dataFilter = new DataFilter();
     private final Options options;
-    private static final Map<TypeString, BufferedWriter> writers = new HashMap<>();
+    private static final Map<DataType, BufferedWriter> writers = new HashMap<>();
     private static final Statistic stats = new StatisticImpl();
 
     public FileManager(Options options) {
         this.options = options;
     }
 
-    //Отлов сделать java.lang.NullPointerException
+
     public void workWithFiles() {
+
+        if (options.getFiles() == null) {
+            System.out.println("There are no files to read");
+            return;
+        }
+
         for (String file : options.getFiles()) {
             try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
                 while (bufferedReader.ready()) {
                     String str = bufferedReader.readLine();
-                    TypeString type = parser.defineType(str);
+                    DataType type = dataFilter.defineType(str);
                     BufferedWriter writer = getWriter(type);
                     if (options.isStats()) {
                         stats.addValue(type, str);
@@ -35,8 +41,10 @@ public class FileManager {
                     writer.write(str);
                     writer.newLine();
                 }
-            } catch (IOException exp) {
+            } catch (FileNotFoundException exc) {
                 System.out.printf("The reading file path %s is incorrect%n", file);
+            } catch (IOException exc) {
+                System.out.printf("Error %s in file %s",exc.getMessage(), file);
             }
         }
 
@@ -50,7 +58,7 @@ public class FileManager {
         }
     }
 
-    private  BufferedWriter getWriter(TypeString type) throws IOException {
+    private BufferedWriter getWriter(DataType type) throws IOException {
         if (!writers.containsKey(type)) {
             StringBuilder builder = new StringBuilder();
             if (options.getName() != null) {
@@ -63,15 +71,17 @@ public class FileManager {
             if (options.getPath() != null) {
                 basePath = options.getPath().resolve(basePath);
             }
-             try {
-                 BufferedWriter writer = new BufferedWriter(new FileWriter(basePath.toFile(), options.isAppend()));
-                 writers.put(type, writer);
-             } catch (IOException exp) {
-                 System.out.printf("The directory for the recording file was not found." +
-                         "The %s file will be placed in the current directory.%n", type);
-                 BufferedWriter writer = new BufferedWriter(new FileWriter(builder.toString(), options.isAppend()));
-                 writers.put(type, writer);
-             }
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(basePath.toFile(), options.isAppend()));
+                writers.put(type, writer);
+            } catch (FileNotFoundException exc) {
+                System.out.printf("The directory for the recording file was not found." +
+                        "The %s file will be placed in the current directory.%n", type);
+                BufferedWriter writer = new BufferedWriter(new FileWriter(builder.toString(), options.isAppend()));
+                writers.put(type, writer);
+            } catch (IOException exc) {
+                System.out.printf("Error creating %s a writing file in file %s%n",exc.getMessage(), basePath);
+            }
         }
         return writers.get(type);
     }
@@ -80,8 +90,8 @@ public class FileManager {
         writers.values().forEach(writer -> {
             try {
                 writer.close();
-            } catch (IOException e) {
-                System.err.println("Error closing file: " + e.getMessage());
+            } catch (IOException exc) {
+                System.err.printf("Error closing file: %s%n", exc.getMessage());
             }
         });
     }

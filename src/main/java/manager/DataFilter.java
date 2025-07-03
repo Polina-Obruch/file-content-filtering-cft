@@ -1,20 +1,20 @@
-package reader;
+package manager;
 
-import properties.TypeString;
+import properties.DataType;
 
 import java.util.regex.Pattern;
 
-public class Parser {
+public class DataFilter {
     private final Pattern patternFloat = Pattern.compile("^-?\\d+\\.\\d+([eE][+-]?\\d+)?$");
     private final Pattern patternNumberE = Pattern.compile("^-?\\d+[eE][+-]?\\d+?$");
     private final Pattern patternInteger = Pattern.compile("^-?\\d+$");
 
-    public TypeString defineType(String string) {
+    public DataType defineType(String string) {
         if (patternFloat.matcher(string).matches() || patternNumberE.matcher(string).matches()) {
-            return TypeString.FLOAT;
+            return DataType.FLOAT;
         } else if (patternInteger.matcher(string).matches()) {
-            return TypeString.INTEGER;
+            return DataType.INTEGER;
         }
-        return TypeString.STRING;
+        return DataType.STRING;
     }
 }

@@ -1,13 +1,14 @@
 package properties;
 
 import java.nio.file.Path;
+import java.util.List;
 
 public class Options {
     private Path path;
     private String name;
     private boolean isAppend;
-    private TypeStatistic typeStat;
-    private String[] files;
+    private StatisticType typeStat;
+    private List<String> files;
     private boolean isStats;
 
     public Path getPath() {
@@ -22,11 +23,11 @@ public class Options {
         return isAppend;
     }
 
-    public TypeStatistic getTypeStat() {
+    public StatisticType getTypeStat() {
         return typeStat;
     }
 
-    public String[] getFiles() {
+    public List<String> getFiles() {
         return files;
     }
 
@@ -42,12 +43,12 @@ public class Options {
         isAppend = append;
     }
 
-    public void setTypeStat(TypeStatistic typeStat) {
+    public void setTypeStat(StatisticType typeStat) {
         isStats = true;
         this.typeStat = typeStat;
     }
 
-    public void setFiles(String[] files) {
+    public void setFiles(List<String> files) {
         this.files = files;
     }
 

@@ -1,6 +1,6 @@
-package statictic;
+package statistic;
 
-import properties.TypeString;
+import properties.DataType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -23,7 +23,7 @@ public class StatisticImpl implements Statistic {
 
 
     @Override
-    public void addValue(TypeString type, String value) {
+    public void addValue(DataType type, String value) {
         try {
             switch (type) {
                 case STRING -> {
@@ -81,30 +81,96 @@ public class StatisticImpl implements Statistic {
     public void getFullStats() {
         String expForStatistic = "%nStatistics are not available for %s file. There are no suitable values in the source files.%n";
         String heading = "%nStatistic for %s file%n";
-        String statsNumber = " count: %s%n max: %s%n min: %s%n average: %s%n";
+        String count = "%n%s file: count = 0";
+        String statsNumber = " count: %s%n max: %s%n min: %s%n sum: %s%n average: %s%n";
         String statsString = " count: %s%n max: %s%n min: %s%n";
 
         if (countString.equals(BigInteger.ZERO)) {
-            System.out.printf(expForStatistic, TypeString.STRING);
+            System.out.printf(count, DataType.STRING);
+            System.out.printf(expForStatistic, DataType.STRING);
         } else {
-            System.out.printf(heading,TypeString.STRING);
+            System.out.printf(heading, DataType.STRING);
             System.out.printf(statsString,
                     countString, maxLength, minLength);
         }
 
         if (countInt.equals(BigInteger.ZERO)) {
-            System.out.printf(expForStatistic,TypeString.INTEGER);
+            System.out.printf(count, DataType.INTEGER);
+            System.out.printf(expForStatistic, DataType.INTEGER);
+
         } else {
-            System.out.printf(heading, TypeString.INTEGER);
-            System.out.printf(statsNumber, countInt, maxInt, minInt, sumInt.divide(countInt));
+            System.out.printf(heading, DataType.INTEGER);
+            System.out.printf(statsNumber, countInt, formatLargeNumber(maxInt),
+                    formatLargeNumber(minInt), formatLargeNumber(sumInt), getAverage());
         }
 
         if (countFloat.equals(BigDecimal.ZERO)) {
-            System.out.printf(expForStatistic,TypeString.FLOAT);
+            System.out.printf(count, DataType.FLOAT);
+            System.out.printf(expForStatistic, DataType.FLOAT);
         } else {
-            System.out.printf(heading,TypeString.FLOAT);
-            System.out.printf(statsNumber, countFloat, maxFloat, minFloat,
-                    sumFloat.divide(countFloat, RoundingMode.CEILING));
+            System.out.printf(heading, DataType.FLOAT);
+            System.out.printf(statsNumber, countFloat, maxFloat, minFloat, sumFloat,
+                    sumFloat.divide(countFloat, 10,RoundingMode.CEILING));
         }
+    }
+
+    private BigDecimal getAverage() {
+        BigDecimal sum = new BigDecimal(sumInt);
+        BigDecimal count = new BigDecimal(countInt);
+        return sum.divide(count, 2,RoundingMode.CEILING);
+    }
+
+    private String formatLargeNumber(BigInteger num) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(num);
+        // Если число больше 50 цифр, используем сокращенную запись
+        if (builder.length() > 50) {
+            return builder.substring(0, 51) + "...E+" + (builder.length() - 50);
+        }
+        return builder.toString();
+    }
+
+    public BigInteger getCountString() {
+        return countString;
+    }
+
+    public BigInteger getMinLength() {
+        return minLength;
+    }
+
+    public BigInteger getMaxLength() {
+        return maxLength;
+    }
+
+    public BigInteger getCountInt() {
+        return countInt;
+    }
+
+    public BigInteger getMinInt() {
+        return minInt;
+    }
+
+    public BigInteger getMaxInt() {
+        return maxInt;
+    }
+
+    public BigInteger getSumInt() {
+        return sumInt;
+    }
+
+    public BigDecimal getCountFloat() {
+        return countFloat;
+    }
+
+    public BigDecimal getMinFloat() {
+        return minFloat;
+    }
+
+    public BigDecimal getMaxFloat() {
+        return maxFloat;
+    }
+
+    public BigDecimal getSumFloat() {
+        return sumFloat;
     }
 }

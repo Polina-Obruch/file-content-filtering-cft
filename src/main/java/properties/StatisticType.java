@@ -1,6 +1,6 @@
 package properties;
 
-public enum TypeStatistic {
+public enum StatisticType {
     FULL,
     SHORT
 }
