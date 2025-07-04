@@ -35,16 +35,21 @@ public class FileManager {
                     String str = bufferedReader.readLine();
                     DataType type = dataFilter.defineType(str);
                     BufferedWriter writer = getWriter(type);
-                    if (options.isStats()) {
-                        stats.addValue(type, str);
+                    if (writer != null) {
+                        if (options.isStats()) {
+                            stats.addValue(type, str);
+                        }
+                        writer.write(str);
+                        writer.newLine();
+                    } else {
+                        closeAll();
+                        return;
                     }
-                    writer.write(str);
-                    writer.newLine();
                 }
             } catch (FileNotFoundException exc) {
                 System.out.printf("The reading file path %s is incorrect%n", file);
             } catch (IOException exc) {
-                System.out.printf("Error %s in file %s",exc.getMessage(), file);
+                System.out.printf("Error %s in file %s", exc.getMessage(), file);
             }
         }
 
@@ -75,12 +80,12 @@ public class FileManager {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(basePath.toFile(), options.isAppend()));
                 writers.put(type, writer);
             } catch (FileNotFoundException exc) {
-                System.out.printf("The directory for the recording file was not found." +
-                        "The %s file will be placed in the current directory.%n", type);
-                BufferedWriter writer = new BufferedWriter(new FileWriter(builder.toString(), options.isAppend()));
-                writers.put(type, writer);
+                System.out.printf("The directory for the recording file %s was not found.%n " +
+                        "Please check the path or directory availability and restart the program. ", type);
+                writers.put(type, null);
             } catch (IOException exc) {
-                System.out.printf("Error creating %s a writing file in file %s%n",exc.getMessage(), basePath);
+                System.out.printf("Error creating %s a writing file in file %s%n", exc.getMessage(), basePath);
+                writers.put(type, null);
             }
         }
         return writers.get(type);

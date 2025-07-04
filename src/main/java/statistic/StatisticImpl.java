@@ -125,7 +125,7 @@ public class StatisticImpl implements Statistic {
         builder.append(num);
         // Если число больше 50 цифр, используем сокращенную запись
         if (builder.length() > 50) {
-            return builder.substring(0, 51) + "...E+" + (builder.length() - 50);
+            return builder.substring(0, 50) + "...E+" + (builder.length() - 50);
         }
         return builder.toString();
     }
