@@ -24,7 +24,7 @@ public class FileManager {
 
     public void workWithFiles() {
 
-        if (options.getFiles() == null) {
+        if (options.getFiles().isEmpty()) {
             System.out.println("There are no files to read");
             return;
         }
@@ -42,7 +42,6 @@ public class FileManager {
                         writer.write(str);
                         writer.newLine();
                     } else {
-                        closeAll();
                         return;
                     }
                 }
@@ -63,7 +62,7 @@ public class FileManager {
         }
     }
 
-    private BufferedWriter getWriter(DataType type) throws IOException {
+    private BufferedWriter getWriter(DataType type) {
         if (!writers.containsKey(type)) {
             StringBuilder builder = new StringBuilder();
             if (options.getName() != null) {
@@ -81,7 +80,7 @@ public class FileManager {
                 writers.put(type, writer);
             } catch (FileNotFoundException exc) {
                 System.out.printf("The directory for the recording file %s was not found.%n " +
-                        "Please check the path or directory availability and restart the program. ", type);
+                        "Please check the path or directory availability and restart the program.%n", type);
                 writers.put(type, null);
             } catch (IOException exc) {
                 System.out.printf("Error creating %s a writing file in file %s%n", exc.getMessage(), basePath);
